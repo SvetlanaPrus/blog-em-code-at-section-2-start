@@ -29,9 +29,11 @@ export function PostDetail({ post }) {
       () => fetchComments(post.id)
   )
 
-  // mutation returns function, we dont need cash.
-  // this line 'deleteMutation' must be before line 35 'if(isLoading)...' -
+  // mutation returns function, we don't need cash!
+  // this line 'deleteMutation' must be before line 'if(isLoading)...' -
   const deleteMutation = useMutation((postId) => deletePost(postId) );
+
+  const titleMutation = useMutation((postId) => updatePost(postId) );
 
   if(isLoading) return <h3>Loading...</h3>
     if(isError) {
@@ -46,10 +48,17 @@ export function PostDetail({ post }) {
       <button onClick={() => deleteMutation.mutate(post.id)}>
           Delete
       </button>
-      <button>Update title</button>
         {deleteMutation.isError && (<p style={{color: "red"}}>Error deleting the post...</p>)}
         {deleteMutation.isLoading && (<p style={{color: "blue"}}>Deleting the post...</p>)}
         {deleteMutation.isSuccess && (<p style={{color: "green"}}>The post is deleted.</p>)}
+
+      <button onClick={() => titleMutation.mutate(post.id)}>
+          Update title
+      </button>
+        {titleMutation.isError && (<p style={{color: "red"}}>Error updating the title...</p>)}
+        {titleMutation.isLoading && (<p style={{color: "blue"}}>Updating the title...</p>)}
+        {titleMutation.isSuccess && (<p style={{color: "green"}}>The title is updated.</p>)}
+
       <p>{post.body}</p>
       <h4>Comments</h4>
       {data.map((comment) => (
