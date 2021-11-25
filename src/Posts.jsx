@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "react-query";
+import {useEffect, useState} from "react";
+import { useQuery, useQueryClient } from "react-query";
 
 import { PostDetail } from "./PostDetail";
 const maxPostPage = 10;
@@ -15,11 +15,26 @@ export function Posts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPost, setSelectedPost] = useState(null);
 
-  // replace with useQuery
-  const { data, isError, error, isLoading } = useQuery(
-      ["posts", currentPage],
-      () => fetchPosts(currentPage) // OBS: pay attention how we pass value, via arrow function!
-  );
+  const queryClient = useQueryClient(); // client side changes, prefetching
+
+  useEffect(() =>{
+      if(currentPage < maxPostPage){         // continue to prefetch if this is not the last page, less than last page
+          const nextPage = currentPage + 1;  // dependence - nextPage
+          // prefetch all posts of the next page -
+          queryClient.prefetchQuery(["posts", nextPage], () => fetchPosts(nextPage))
+      }
+          // dependence - currentPage, queryClient
+  }, [currentPage, queryClient])
+
+    // replace with useQuery
+    const { data, isError, error, isLoading } = useQuery(
+        ["posts", currentPage],
+        () => fetchPosts(currentPage), // OBS: pay attention how we pass value, via arrow function!
+        {
+            staleTime: 2000, // After 2sec is old info
+            keepPreviousData: true  // prev.data in cash
+        }
+    );
 
   if (isLoading) return <h3>Loading...</h3>;
   if (isError)
